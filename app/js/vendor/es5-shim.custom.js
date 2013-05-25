@@ -610,12 +610,6 @@ if (!Array.prototype.lastIndexOf || ([0, 1].lastIndexOf(0, -3) != -1)) {
     };
 }
 
-if (!Array.prototype.clone) {
-    Array.prototype.clone = function() {
-        return this.slice(0);
-    };
-}
-
 //
 // Object
 // ======
