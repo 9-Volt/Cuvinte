@@ -10,6 +10,20 @@ $(function () {
     , color_green = "#3bbdb5"
     , stroke_width = 10
 
+  appSVG
+    .append("defs")
+      .append("pattern")
+        .attr("id", "pattern-diagonal")
+        .attr("patternUnits", "userSpaceOnUse")
+        .attr("preserveAspectRatio", "slice")
+        .attr("width", 2)
+        .attr("height", 2)
+        .append("image")
+          .attr("width", 2)
+          .attr("height", 2)
+          .attr("opacity", 0.8)
+          .attr("xlink:href", "images/texture.png")
+
   /*
    * Data section start
    */
@@ -104,77 +118,40 @@ $(function () {
         .attr("cy", function (d, i) {
           return section_vertical * 0.6;
         })
-        .attr("r", 20)
+        .attr("r", function (d, i) {
+          return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
+        })
         .style("stroke", color_red)
-        .style("fill", color_green)
+        .style("fill", "none")
         .attr("stroke-width", 0)
         .attr("id", function (d, i) {
           return "circle-" + i;
         })
-    // Events
-        .on("mouseover", function (d, i) {
-          var _i = i
-
-          d3.select(this)
-            .transition()
-            .duration(300)
-            .style("fill-opacity", 0)
-            .attr("stroke-width", stroke_width)
-            .attr("r", ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2 - stroke_width / 2)
-
-          // Show only necessary number
-          appCircleValues.each(function (d, i) {
-            if (i == _i) {
-              d3.select(this)
-                .attr("opacity", 1)
-            }
-          })
-
-        })
-        .on("mouseout", function (d, i) {
-          d3.select(this)
-            .transition()
-            .duration(300)
-            .style("fill-opacity", 1)
-            .attr("stroke-width", 0)
-            .attr("r", ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2)
-
-          // Hide all numbers
-          appCircleValues
-            .attr("opacity", 0)
-        })
-
-  // Transition
-  appCircles
-    .transition()
-      .duration(1000)
-      .attr("r", function (d, i) {
-        return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
-      })
 
   // Add images
   var appCircleImages = appCircleGroups
       .append("image")
-      .attr("stroke", "strong")
-      .attr("x", function (d, i) {
-        return section_horizontal * 0.5;
-      })
-      .attr("y", function (d, i) {
-        return section_vertical * 0.6;
-      })
-      .attr("width", function (d, i) {
-        return 1
-      })
-      .attr("height", function (d, i) {
-        return 1
-      })
-      .attr("xlink:href", function (d, i) {
-        return d.image;
-      })
+        .attr("x", function (d, i) {
+          return section_horizontal * 0.5;
+        })
+        .attr("y", function (d, i) {
+          return section_vertical * 0.6;
+        })
+        .attr("width", function (d, i) {
+          return 1
+        })
+        .attr("height", function (d, i) {
+          return 1
+        })
+        .attr("opacity", 1)
+        .attr("xlink:href", function (d, i) {
+          return d.image;
+        })
 
   appCircleImages
     .transition()
-      .duration(1000)
+      .delay(500)
+      .duration(500)
       .attr("x", function (d, i) {
         return section_horizontal * 0.5 - ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2;
       })
@@ -187,6 +164,84 @@ $(function () {
       .attr("height", function (d, i) {
         return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min)
       })
+
+  var appCirclesMask = appCircleGroups
+      .append("circle")
+        .attr("fill", "url(#pattern-diagonal)")
+        .attr("cx", function (d, i) {
+          return section_horizontal * 0.5;
+        })
+        .attr("cy", function (d, i) {
+          return section_vertical * 0.6;
+        })
+        .attr("r", function (d, i) {
+          return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2 + 1
+        })
+        .attr("opacity", 1)
+    // Events
+        .on("mouseover", function (d, i) {
+          d3.select(this)
+            .transition()
+            .duration(500)
+              .attr("opacity", 0)
+
+          // Show only necessary number
+          appCircleImages.each(function (d, _i) {
+            if (i == _i) {
+              d3.select(this)
+                .transition()
+                .duration(500)
+                .attr("opacity", 0)
+            }
+          })
+
+          // Show only necessary number
+          appCircles.each(function (d, _i) {
+            if (i == _i) {
+              d3.select(this)
+                .transition()
+                .duration(700)
+                .attr("stroke-width", stroke_width)
+                .attr("r", ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2 - stroke_width / 2)
+            }
+          })
+
+          // Show only necessary number
+          appCircleValues.each(function (d, _i) {
+            if (i == _i) {
+              d3.select(this)
+                .attr("opacity", 1)
+            }
+          })
+
+        })
+        .on("mouseout", function (d, i) {
+          d3.select(this)
+            .transition()
+            .duration(500)
+              .attr("opacity", 1)
+
+          // Show back images
+          appCircleImages
+            .transition()
+            .duration(1000)
+            .attr("opacity", 1)
+
+          // Hide circle stroke
+          appCircles.each(function (d, _i) {
+            if (i == _i) {
+              d3.select(this)
+                .transition()
+                .duration(300)
+                .attr("stroke-width", 0)
+                .attr("r", ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2)
+            }
+          })
+
+          // Hide all numbers
+          appCircleValues
+            .attr("opacity", 0)
+        })
 
   var appCircleTitles = appCircleGroups
     .append("text")
@@ -275,16 +330,42 @@ $(function () {
           appCircleGroups
             .data(data)
           // resize circles
-            .select("circle")
+            .select("image")
             .transition()
-              .duration(1000)
-              .attr("r", function (d, i) {
-                return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
+              .duration(500)
+              .attr("x", function (d, i) {
+                return section_horizontal * 0.5 - ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2;
+              })
+              .attr("y", function (d, i) {
+                return section_vertical * 0.6 - ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2;
+              })
+              .attr("width", function (d, i) {
+                return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min)
+              })
+              .attr("height", function (d, i) {
+                return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min)
               })
 
+          appCircles
+            .attr("r", function (d, i) {
+              return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
+            })
+
+          appCirclesMask
+            .transition()
+              .duration(500)
+            .attr("cx", function (d, i) {
+              return section_horizontal * 0.5;
+            })
+            .attr("cy", function (d, i) {
+              return section_vertical * 0.6;
+            })
+            .attr("r", function (d, i) {
+              return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2 + 1
+            })
+
+          // move groups
           appCircleGroups
-            .data(data)
-          // move circles
             .transition()
               .delay(1000)
               .duration(1000)
@@ -293,6 +374,11 @@ $(function () {
                   , y = section_vertical * (~~(d.index_sorted / 5) - 0.23);
                 return "translate(" + x + ", " + y + ")"
               })
+
+          appCircleValues
+            .text(function (d) {
+              return d.value
+            })
 
         })
 
