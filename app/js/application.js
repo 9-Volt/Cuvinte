@@ -29,13 +29,14 @@ $(function () {
    */
   var data = [];
   var names = ["V. PLAHOTNIUC", "V. FILAT", "V. VORONIN", "M. LUPU"]
+  var images = ["voronin.png", "filat.png", "plahotniuc.png"]
 
   // Add some random data
   for (var i = 0; i < 15; i++) {
     data.push({
       name: names[~~(Math.random() * names.length)]
     , value: ~~(1.0 * Math.random() * ~~(app_height / 3.5) * ~~(app_height / 3.5))
-    , image: "images/image.png"
+    , image: "images/" + images[~~(Math.random() * images.length)]
     })
   }
 
@@ -259,64 +260,125 @@ $(function () {
       .attr("fill", "black")
 
 
-  var date_section_space = 0.2 // space between years is of the same width as width of 2 months
-    , date_section_margin = 3 // space between years and svg border
-    , date_years = date_end_year - date_start_year + 1
+  var date_years = date_end_year - date_start_year + 1
     , date_months = (13 - date_start_month) + date_end_month + Math.max(0, (date_end_year - date_start_year - 1) * 12)
-    , date_sections = date_months + (date_section_margin * 2) + (date_section_space * (date_years - 1))
-    , date_section_width = (app_width / date_sections) // size of one section
-    , years = []
-    , months = []
+    , date_month_width = (app_width / date_months) // size of one month
 
-    console.log(date_months, date_sections)
+    console.log(date_months, date_month_width)
 
   var month_start
     , month_end
     , month_last = 0
 
+  var data_time = [
+    {
+      type: "timeline"
+    , text: "TOTAL"
+    }
+  ]
+
   for (var year = date_start_year; year <= date_end_year; year++) {
     month_start = year === date_start_year ? date_start_month : 1
     month_end = year === date_end_year ? date_end_month : 12
 
-    years.push({
-      "months": month_end - month_start + 1
+    data_time.push({
+      "type": "year"
+    , "months": month_end - month_start + 1
     , "year": year
     , "month_start": month_start
     , "month_end": month_end
     , "date_month_start": month_last
     })
 
-    month_last += years[years.length - 1].months
+    month_last += month_end - month_start + 1
 
     for (var month = month_start;month <= month_end; month++) {
-      months.push({
-        "month": month
+
+      data_time.push({
+        "type": "month"
+      , "month": month
       , "year": year
+      , "is_last": month === month_end
       })
     }
   }
 
-  console.log(date_months)
+  var timeline_height = ~~(date_month_width)
 
-  var appYears = appSVG
+  var _year_start
+    , _year_end
+    , _year_width
+
+  var appDates = appSVG
       .selectAll("rect")
-        .data(years)
+        .data(data_time)
       .enter().append("rect")
+        .style("stroke-width", 0)
+        // .style("stroke", "white")
+        .style("fill", color_green)
+      // Sizes
+        .attr("height", timeline_height)
+        .attr("width", function (d, i) {
+          if (d.type === "timeline") {
+            return app_width - 2
+          } else if (d.type === "year") {
+            // Implies that months are comming right after years
+            // year positions
+            _year_start = Math.max(1, ~~(d.date_month_start * date_month_width))
+            _year_width = ~~((d.date_month_start + d.months) * date_month_width) - Math.max(1, ~~(d.date_month_start * date_month_width)) - 1
+            _year_end = _year_start + _year_width
+
+            // Find where next year will start, decrease this year start and one more point in order to have 1 px space
+            return _year_width
+          } else if (d.type === "month") {
+            if (d.is_last) {
+              // Find where year will end and decrease month start
+              return _year_end - ~~(_year_start + (d.month - 1) * date_month_width)
+            } else {
+              // Find where next month will start, decrease this value+1 in order to have 1px space
+              return ~~(_year_start + d.month * date_month_width) - ~~(_year_start + (d.month - 1) * date_month_width) - 1
+            }
+          }
+        })
+      // Pozitions
         .attr("x", function (d, i) {
-          return ~~((date_section_margin + d.date_month_start + i * date_section_space) * date_section_width) + 0.5
+          if (d.type === "timeline") {
+            return 1
+          } else if (d.type === "year") {
+            // Implies that months are comming right after years
+            // year positions
+            _year_start = Math.max(1, ~~(d.date_month_start * date_month_width))
+            _year_width = ~~((d.date_month_start + d.months) * date_month_width) - Math.max(1, ~~(d.date_month_start * date_month_width)) - 1
+            _year_end = _year_start + _year_width
+
+            return Math.max(1, ~~(d.date_month_start * date_month_width))
+          } else if (d.type === "month") {
+            return ~~(_year_start + (d.month - 1) * date_month_width)
+          }
         })
         .attr("y", function (d, i) {
-          return ~~(app_height - section_vertical / 2) + 0.5
+          if (d.type === "timeline") {
+            return app_height - (timeline_height + 1) * 3
+          } else if (d.type === "year") {
+            return app_height - (timeline_height + 1) * 2
+          } else if (d.type === "month") {
+            return app_height - (timeline_height + 1)
+          }
         })
-        .attr("height", function (d, i) {
-          return section_vertical / 6
-        })
-        .attr("width", function (d, i) {
-          return ~~(d.months * date_section_width)
-        })
-        .style("stroke", "gray")
-        .style("fill", "white")
-        .on("click", function(d, i) {
+      // Events
+        .on("click", function (d, i) {
+          // == Change active date ==
+          appDates
+            .transition()
+              .duration(500)
+              .style("fill", color_green)
+
+          d3.select(this)
+            .transition()
+            .delay(500)
+            .duration(500)
+            .style("fill", color_red)
+
           // == Reorder circles ==
           // reset data
           for (var i = 0; i < 15; i++) {
@@ -379,7 +441,5 @@ $(function () {
             .text(function (d) {
               return d.value
             })
-
         })
-
 });
