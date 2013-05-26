@@ -5,18 +5,23 @@ $(function () {
     , appSVG = d3.select("#cuvinte")
       .append("svg")
       .attr("width", app_width)
-      .attr("height", app_height);
+      .attr("height", app_height)
+    , color_red = "#ef4b48"
+    , color_green = "#3bbdb5"
+    , stroke_width = 10
 
   /*
    * Data section start
    */
   var data = [];
+  var names = ["V. PLAHOTNIUC", "V. FILAT", "V. VORONIN", "M. LUPU"]
 
   // Add some random data
   for (var i = 0; i < 15; i++) {
     data.push({
-      name: "Narghilea" + i
+      name: names[~~(Math.random() * names.length)]
     , value: ~~(1.0 * Math.random() * ~~(app_height / 3.5) * ~~(app_height / 3.5))
+    , image: "images/image.png"
     })
   }
 
@@ -56,38 +61,148 @@ $(function () {
     return (b.value - a.value);
   })
 
-  var section_horizontal = ~~(app_width / 5) // 5 elements per row = 6 spaces
-    , section_vertical = ~~(app_height / 3.5) // 3 rows of circles, 1 row for time
+  var section_horizontal = ~~(app_width / 5.5) // 5 elements per row = 6 spaces
+    , section_vertical = ~~(app_height / 3.43) // 3 rows of circles, 1 row for time
     , data_max = Math.sqrt(data[0].value)
     , data_min = Math.sqrt(data[data.length - 1].value)
     , size_max = ~~(section_horizontal / 1.8) // maximal size of circle
     , size_min = ~~(section_horizontal / 4) // minimal size of circle
     , scale_data_to_size = (data_max - data_min) / (size_max - size_min) // scale real data to our screen
 
-  // TODO remove this
-  console.log(size_max, size_min)
-
-  var appCircles = appSVG
-      .selectAll("circle")
+  var appCircleGroups = appSVG
+      .selectAll("g")
         .data(data)
-      .enter().append("circle")
+      .enter().append("g")
+        .attr("transform", function (d, i) {
+          var x = section_horizontal * ((d.index_sorted % 5) + 0.25)
+            , y = section_vertical * (~~(d.index_sorted / 5) - 0.23);
+          return "translate(" + x + ", " + y + ")"
+        })
+
+  var appCircleValues = appCircleGroups
+    .append("text")
+      .text(function (d) {
+        return d.value
+      })
+      .attr("dx", function (d, i) {
+        return ~~(section_horizontal / 2)
+      })
+      .attr("dy", function (d, i) {
+        return ~~(section_vertical / 1.55)
+      })
+      .attr("text-anchor", "middle")
+      .attr("font-size", '25px')
+      .attr("fill", color_red)
+      .attr("opacity", 0)
+
+  // Circle
+  var appCircles = appCircleGroups
+      .append("circle")
         .attr("cx", function (d, i) {
-          return section_horizontal * (d.index_sorted % 5 + 0.5);
+          return section_horizontal * 0.5;
         })
         .attr("cy", function (d, i) {
-          return section_vertical * (~~(d.index_sorted / 5) + 0.6);
+          return section_vertical * 0.6;
         })
-        .attr("r", 0)
-        .style("stroke", "gray")
-        .style("fill", "white")
-    // Transition
-    appCircles
-      .transition()
-        .duration(1000)
-        // .ease("bounce")
-        .attr("r", function (d, i) {
-          return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
+        .attr("r", 20)
+        .style("stroke", color_red)
+        .style("fill", color_green)
+        .attr("stroke-width", 0)
+        .attr("id", function (d, i) {
+          return "circle-" + i;
         })
+    // Events
+        .on("mouseover", function (d, i) {
+          var _i = i
+
+          d3.select(this)
+            .transition()
+            .duration(300)
+            .style("fill-opacity", 0)
+            .attr("stroke-width", stroke_width)
+            .attr("r", ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2 - stroke_width / 2)
+
+          // Show only necessary number
+          appCircleValues.each(function (d, i) {
+            if (i == _i) {
+              d3.select(this)
+                .attr("opacity", 1)
+            }
+          })
+
+        })
+        .on("mouseout", function (d, i) {
+          d3.select(this)
+            .transition()
+            .duration(300)
+            .style("fill-opacity", 1)
+            .attr("stroke-width", 0)
+            .attr("r", ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2)
+
+          // Hide all numbers
+          appCircleValues
+            .attr("opacity", 0)
+        })
+
+  // Transition
+  appCircles
+    .transition()
+      .duration(1000)
+      .attr("r", function (d, i) {
+        return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
+      })
+
+  // Add images
+  var appCircleImages = appCircleGroups
+      .append("image")
+      .attr("stroke", "strong")
+      .attr("x", function (d, i) {
+        return section_horizontal * 0.5;
+      })
+      .attr("y", function (d, i) {
+        return section_vertical * 0.6;
+      })
+      .attr("width", function (d, i) {
+        return 1
+      })
+      .attr("height", function (d, i) {
+        return 1
+      })
+      .attr("xlink:href", function (d, i) {
+        return d.image;
+      })
+
+  appCircleImages
+    .transition()
+      .duration(1000)
+      .attr("x", function (d, i) {
+        return section_horizontal * 0.5 - ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2;
+      })
+      .attr("y", function (d, i) {
+        return section_vertical * 0.6 - ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2;
+      })
+      .attr("width", function (d, i) {
+        return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min)
+      })
+      .attr("height", function (d, i) {
+        return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min)
+      })
+
+  var appCircleTitles = appCircleGroups
+    .append("text")
+      .text(function (d) {
+        return d.name
+      })
+      .attr("dx", function (d, i) {
+        return ~~(section_horizontal / 2)
+      })
+      .attr("dy", function (d, i) {
+        return ~~(section_vertical * 1.1)
+      })
+      .attr("text-anchor", "middle")
+      .attr("font-size", '23px')
+      .attr("fill", "black")
+
 
   var date_section_space = 0.2 // space between years is of the same width as width of 2 months
     , date_section_margin = 3 // space between years and svg border
@@ -157,23 +272,26 @@ $(function () {
           data = addSortedAttributeBy(data);
 
           // push data
-          appCircles
+          appCircleGroups
             .data(data)
           // resize circles
+            .select("circle")
             .transition()
               .duration(1000)
               .attr("r", function (d, i) {
                 return ((Math.sqrt(d.value) - data_min) / scale_data_to_size + size_min) / 2
               })
+
+          appCircleGroups
+            .data(data)
           // move circles
             .transition()
               .delay(1000)
               .duration(1000)
-              .attr("cx", function (d, i) {
-                return section_horizontal * (d.index_sorted % 5 + 0.5);
-              })
-              .attr("cy", function (d, i) {
-                return section_vertical * (~~(d.index_sorted / 5) + 0.6);
+              .attr("transform", function (d, i) {
+                var x = section_horizontal * ((d.index_sorted % 5) + 0.25)
+                  , y = section_vertical * (~~(d.index_sorted / 5) - 0.23);
+                return "translate(" + x + ", " + y + ")"
               })
 
         })
