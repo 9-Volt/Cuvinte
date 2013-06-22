@@ -8,3 +8,7 @@
 4. cd into project folder
 5. run command ```npm install```
 6. run command ```grunt server```
+
+Grunt server will look for less files changes (and will compile them).
+
+If you have livereload browser extension then browser will refresh automatically whenever you'll change html, css or js files.
