@@ -56,7 +56,7 @@ $(function () {
     })
   }
 
-  var date_start_month = 1
+  var date_start_month = 2
     , date_start_year = 2009
     , date_end_month = 5
     , date_end_year = 2013
@@ -331,10 +331,6 @@ $(function () {
 
   var timeline_height = ~~(date_month_width)
 
-  var _year_start
-    , _year_end
-    , _year_width
-
   var refilData = function (data, type) {
     // reset data
     for (var i = 0; i < 15; i++) {
@@ -405,6 +401,11 @@ $(function () {
       })
   }
 
+  var _year_start
+    , _year_end
+    , _year_width
+    , _year_start_month
+
   var appDateGroups = appSVG
       .selectAll("g")
         .data(data_time)
@@ -432,6 +433,7 @@ $(function () {
           _year_start = Math.max(1, ~~(d.date_month_start * date_month_width))
           _year_width = ~~((d.date_month_start + d.months) * date_month_width) - Math.max(1, ~~(d.date_month_start * date_month_width)) - 1
           _year_end = _year_start + _year_width
+          _year_start_month = d.month_start
 
           // x
           this._data.x = Math.max(1, ~~(d.date_month_start * date_month_width))
@@ -443,7 +445,7 @@ $(function () {
           this._data.width = _year_width
         } else if (d.type === "month") {
           // x
-          this._data.x = ~~(_year_start + (d.month - 1) * date_month_width)
+          this._data.x = ~~(_year_start + (d.month - _year_start_month) * date_month_width)
 
           // y
           this._data.y = app_height - (timeline_height + 1)
@@ -451,10 +453,10 @@ $(function () {
           // width
           if (d.is_last) {
             // Find where year will end and decrease month start
-            this._data.width = _year_end - ~~(_year_start + (d.month - 1) * date_month_width)
+            this._data.width = _year_end - ~~(_year_start + (d.month - _year_start_month) * date_month_width)
           } else {
             // Find where next month will start, decrease this value+1 in order to have 1px space
-            this._data.width = ~~(_year_start + d.month * date_month_width) - ~~(_year_start + (d.month - 1) * date_month_width) - 1
+            this._data.width = ~~(_year_start + (d.month + 1 - _year_start_month) * date_month_width) - ~~(_year_start + (d.month - _year_start_month) * date_month_width) - 1
           }
         }
 
