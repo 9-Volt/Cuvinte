@@ -17,33 +17,10 @@ module.exports = function(grunt) {
         files: [
           'app/{,*/}*.html',
           'app/{,*/}*.css',
-          'app/{,*/}*.js',
+          'app/{,*/,*/*/}*.js',
           'app/{,*/}*.{png,jpg,jpeg,gif}'
         ],
         tasks: []
-      }
-    },
-    coffee: {
-      production: {
-        files: [{
-          expand: true,
-          cwd: 'src/scripts',
-          src: '*.coffee',
-          dest: 'app/js',
-          ext: '.js'
-        }]
-      },
-      development: {
-        options: {
-          sourceMap: true
-        },
-        files: [{
-          expand: true,
-          cwd: 'src/scripts',
-          src: '*.coffee',
-          dest: 'app/js',
-          ext: '.js'
-        }]
       }
     },
     less: {
