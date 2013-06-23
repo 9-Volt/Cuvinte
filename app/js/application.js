@@ -1,5 +1,5 @@
 $(function () {
-  $('#cuvinte').words_mentions({
+  $('#words-frequency-visualisation').words_mentions({
     images: {
       "V. Filat": "images/filat.png"
     , "V. Voronin": "images/voronin.png"

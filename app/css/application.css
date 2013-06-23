@@ -227,11 +227,66 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: "DINNextLTPro-LightCondensed", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-family: "DINNextLTPro-Regular", "Miriad Pro", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 16px;
 }
-#cuvinte {
+#words-frequency {
+  width: 1110px;
+  margin: 0 auto;
+}
+#words-frequency .header {
+  min-height: 118px;
+}
+#words-frequency .header .code {
+  color: #ef4b48;
+  font-size: 65px;
+  width: 150px;
+  text-align: center;
+  border-right: 1px solid #3bbdb5;
+  float: left;
+  padding: 15px 0 12px;
+  margin: 7px 32px 10px 0;
+}
+#words-frequency .header .description {
+  padding: 0 150px 0 0;
+}
+#words-frequency .header .description .title {
+  font-family: "DINNextLTPro-Regular", "Miriad Pro", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 18px;
+  padding: 9px 0 2px;
+}
+#words-frequency .header .description .text {
+  font-family: "DINNextLTPro-Light", "Miriad Pro", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.3;
+}
+#words-frequency #words-frequency-visualisation {
   width: 1110px;
   height: 710px;
-  border: 1px solid #000;
+  border-top: 1px solid #3bbdb5;
   margin: 0 auto;
+  font-family: "DINNextLTPro-LightCondensed", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+}
+#words-frequency .footer {
+  min-height: 119px;
+}
+#words-frequency .footer .logo {
+  float: right;
+  margin: 6px 0 5px;
+}
+#words-frequency .footer .logo a {
+  display: block;
+}
+#words-frequency .footer .description {
+  padding: 0 225px 0 0;
+}
+#words-frequency .footer .description .title {
+  font-family: "DINNextLTPro-Regular", "Miriad Pro", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 18px;
+  padding: 9px 0 2px;
+}
+#words-frequency .footer .description .text {
+  font-family: "DINNextLTPro-Light", "Miriad Pro", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.3;
 }

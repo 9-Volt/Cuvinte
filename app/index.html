@@ -1,12 +1,31 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Cuvinte</title>
+  <title>Words Frequency Visualisation by 9vols</title>
   <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/application.css">
 </head>
 <body>
-  <div id="cuvinte"></div>
+  <div id="words-frequency">
+    <div class="header">
+      <div class="code">#1a</div>
+      <div class="description">
+        <div class="title">Numarul total de mențiuni a 15 politicieni în perioada 2009-2013 în categoria Politic pe publika.md</div>
+        <div class="text">Această vizualizare interactiva creată de 9volt cu susținerea echipei Bloguvern face parte dintr-o serie de analize experimentale a presei în Republica Moldova . În următoarele săptămâni ne propunem să vă prezentăm vizualizări similare pentru alte resurse media, cât și o vizualizare comparativă a frecvenței mențiunii politicienilor per total în presa studiată, cât și alți indicatori.</div>
+      </div>
+    </div>
+    <div id="words-frequency-visualisation"></div>
+    <div id="words-frequerncy-graphs">
+      <img src="images/graph.png" alt="">
+    </div>
+    <div class="footer">
+      <div class="logo"><a href="#"><img src="img/logo-9volt.png" alt="9volt"></a></div>
+      <div class="description">
+        <div class="title">Legendă:</div>
+        <div class="text">Prima parte a vizualizării prezintă un top dinamic, puteți selecta anumiți politicieni pentru a vedea evoluția lor comparativă cât și perioada care vă interesează. A doua parte prezintă evoluția mențiunilor pe toată perioada studiată. Algoritmul de căutare e unul automatizat și poate fi studiat pe 9volt.md. La momentul actual din cauza complexității datelor și factorilor aleatori ca greșelile ortografice, marja de eroare nu poate fi calculată exact. Interpretarea datelor rămâne la discreția cititorului.</div>
+      </div>
+    </div>
+  </div>
   <script src="js/vendor/jquery-1.9.1.min.js"></script>
   <script src="js/vendor/d3.v3.min.js"></script>
   <script src="js/plugins/es5.shim-custom.js"></script>

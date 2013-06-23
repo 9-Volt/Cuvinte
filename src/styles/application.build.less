@@ -1,4 +1,5 @@
 @import "bootstrap/variables.less";
+  @import "override/variables.less";
 @import "bootstrap/mixins.less";
 
 // CSS Reset
@@ -8,12 +9,78 @@
 html, body{
   margin: 0;
   padding: 0;
-  font-family: "DINNextLTPro-LightCondensed", Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-family: @font_regular;
+  font-size: 16px;
 }
 
-#cuvinte {
-  width: 1110px;
-  height: 710px;
-  border: 1px solid #000;
+#words-frequency{
+  width: @width;
   margin: 0 auto;
+
+  .header{
+    min-height: 118px;
+
+    .code{
+      color: @red;
+      font-size: 65px;
+      width: 150px;
+      text-align: center;
+      border-right: 1px solid @green;
+      float: left;
+      padding: 15px 0 12px;
+      margin: 7px 32px 10px 0;
+    }
+    .description{
+      padding: 0 150px 0 0;
+
+      .title{
+        font-family: @font_regular;
+        font-size: 18px;
+        padding: 9px 0 2px;
+      }
+      .text{
+        font-family: @font_light;
+        font-size: 16px;
+        line-height: 1.3;
+      }
+    }
+  }
+
+  #words-frequency-visualisation{
+    width: @width;
+    height: 710px;
+    border-top: 1px solid @green;
+    margin: 0 auto;
+    font-family: @font_light_condensed;
+  }
+
+  #words-frequerncy-graphs{
+    // display: none;
+  }
+
+  .footer{
+    min-height: 119px;
+    .logo{
+      float: right;
+      margin: 6px 0 5px;
+
+      a{
+        display: block;
+      }
+    }
+    .description{
+      padding: 0 225px 0 0;
+      .title{
+        font-family: @font_regular;
+        font-size: 18px;
+        padding: 9px 0 2px;
+      }
+      .text{
+        font-family: @font_light;
+        font-size: 16px;
+        line-height: 1.3;
+      }
+    }
+  }
+
 }
