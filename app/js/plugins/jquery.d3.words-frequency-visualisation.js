@@ -122,7 +122,7 @@
       for(var i = names.length - 1; i >= 0; i--) {
         this.data.people[i] = {
           name: names[i]
-        , image: 'images/diacov.png'
+        , image: this.options.images[names[i]] !== undefined ? this.options.images[names[i]] : this.options.image_blank
         , occurences: {
             total: 0
           }
@@ -761,6 +761,8 @@
       max: 1.0 / 1.8
     , min: 1.0 / 4
     }
+  , images: {}
+  , image_blank: 'images/blank.png'
   }
 
 }(window.jQuery);
