@@ -1,5 +1,5 @@
 $(function () {
-  $('#words-frequency-visualisation').words_mentions({
+  $('#words-frequency-visualization').words_mentions({
     images: {
       "V. Filat": "images/filat.png"
     , "V. Voronin": "images/voronin.png"

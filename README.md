@@ -1,4 +1,4 @@
-# Words Frequency Visualisation
+# Words Frequency Visualization
 
 ## How to run Grunt
 
@@ -13,4 +13,4 @@ Grunt server will look for less files changes (and will compile them).
 
 If you have livereload browser extension then browser will refresh automatically whenever you'll change html, css or js files.
 
-Temporary [demo](http://9-volt.github.io/Words-Frequency-Visualisation/app/).
+Temporary [demo](http://9-volt.github.io/Words-Frequency-Visualization/app/).

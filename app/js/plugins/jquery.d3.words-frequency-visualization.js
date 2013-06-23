@@ -73,7 +73,7 @@
         callback(data)
       }
       , error: function () {
-        alert('Sorry, an error occured while loading data for visualisation')
+        alert('Sorry, an error occured while loading data for visualization')
       }
       })
     }
