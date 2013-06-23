@@ -354,7 +354,7 @@
             return ~~(section_vertical / 1.55)
           })
           .attr("text-anchor", "middle")
-          .attr("font-size", '25px')
+          .attr("font-size", this.options.text_occurences_size)
           .attr("fill", this.options.color_bg_active)
           .attr("opacity", 0)
 
@@ -460,7 +460,7 @@
             return ~~(section_vertical * 1.1)
           })
           .attr("text-anchor", "middle")
-          .attr("font-size", '23px')
+          .attr("font-size", this.options.text_names_size)
           .attr("fill", "black")
 
     }
@@ -740,10 +740,10 @@
             return this.parentNode._data.width / 2
           })
           .attr("dy", function (d, i) {
-            return timeline_height + 1 - (timeline_height / 4)
+            return timeline_height - (timeline_height / 4)
           })
           .attr("text-anchor", "middle")
-          .attr("font-size", '14px')
+          .attr("font-size", this.options.text_dates_size)
           .attr("fill", "white")
         // Events
           .on("click", function (d, i) {
@@ -782,6 +782,9 @@
   , images: {}
   , image_blank: 'img/blank.png'
   , texture: 'img/texture.png'
+  , text_occurences_size: '24px'
+  , text_names_size: '21px'
+  , text_dates_size: '16px'
   }
 
 }(window.jQuery);
