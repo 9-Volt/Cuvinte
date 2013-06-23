@@ -56,7 +56,7 @@
               .attr("width", 2)
               .attr("height", 2)
               .attr("opacity", 0.8)
-              .attr("xlink:href", "images/texture.png")
+              .attr("xlink:href", this.options.texture)
     }
 
   , loadData: function (callback) {
@@ -780,7 +780,8 @@
     , min: 1.0 / 4
     }
   , images: {}
-  , image_blank: 'images/blank.png'
+  , image_blank: 'img/blank.png'
+  , texture: 'img/texture.png'
   }
 
 }(window.jQuery);
