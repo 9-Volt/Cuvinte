@@ -122,7 +122,7 @@
       for(var i = names.length - 1; i >= 0; i--) {
         this.data.people[i] = {
           name: names[i]
-        , image: ''
+        , image: 'images/diacov.png'
         , occurences: {
             total: 0
           }
@@ -163,6 +163,11 @@
       */
 
       this.data.timeline = []
+
+      /* Allocate first names.length array elements
+        It is necessary as we will use group.enter() function to populate only overflowind element
+      */
+      this.data.timeline.length = names.length
 
       // Push general timeline
       this.data.timeline.push(
@@ -296,6 +301,221 @@
     }
 
   , drawCircles: function () {
+      var that = this
+        , valueFunction = this.options.value_function
+
+      var section_horizontal = ~~(this.data.width / 5.5) // 5 elements per row = 6 spaces
+        , section_vertical = ~~(this.data.height / 3.43) // 3 rows of circles, 1 row for time
+        , data_max = this.options.value_function(this.data.people.reduce(function (a, b) {
+            if (a > b.active.occurences) {
+              return a
+            } else {
+              return b.active.occurences
+            }
+          }, -1))
+        , data_min = this.options.value_function(this.data.people.reduce(function (a, b) {
+            if (a >= 0 && a < b.active.occurences) {
+              return a
+            } else {
+              return b.active.occurences
+            }
+          }, -1))
+        , size_max = ~~(section_horizontal * this.options.circle_size_rate.max) // maximal size of circle
+        , size_min = ~~(section_horizontal * this.options.circle_size_rate.min) // minimal size of circle
+        , scale_data_to_size = (data_max - data_min) / (size_max - size_min) // scale real data to our screen
+
+      this.data.data_max = data_max
+      this.data.data_min = data_min
+      this.data.size_max = size_max
+      this.data.size_min = size_min
+      this.data.scale_data_to_size = scale_data_to_size
+
+      this.data.circles_groups = this.data.svg
+        .selectAll("g")
+          .data(this.data.people)
+        .enter().append("g")
+          .attr("transform", function (d, i) {
+            var x = section_horizontal * ((d.active.index_sorted % 5) + 0.25)
+              , y = section_vertical * (~~(d.active.index_sorted / 5) - 0.23);
+            return "translate(" + x + ", " + y + ")"
+          })
+
+      this.data.circles_text = this.data.circles_groups
+        .append("text")
+          .text(function (d) {
+            return d.active.occurences
+          })
+          .attr("dx", function (d, i) {
+            return ~~(section_horizontal / 2)
+          })
+          .attr("dy", function (d, i) {
+            return ~~(section_vertical / 1.55)
+          })
+          .attr("text-anchor", "middle")
+          .attr("font-size", '25px')
+          .attr("fill", this.options.color_bg_active)
+          .attr("opacity", 0)
+
+      this.data.circles = this.data.circles_groups
+        .append("circle")
+          .attr("cx", function (d, i) {
+            this._data = {
+              active: false
+            }
+
+            return section_horizontal * 0.5;
+          })
+          .attr("cy", function (d, i) {
+            return section_vertical * 0.6;
+          })
+          .attr("r", function (d, i) {
+            return ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2
+          })
+          .style("stroke", this.options.color_bg_active)
+          .style("fill", "none")
+          .attr("stroke-width", 0)
+          .attr("id", function (d, i) {
+            return "circle-" + i;
+          })
+
+      // Add images
+      this.data.circles_images = this.data.circles_groups
+        .append("image")
+          .attr("x", function (d, i) {
+            return section_horizontal * 0.5;
+          })
+          .attr("y", function (d, i) {
+            return section_vertical * 0.6;
+          })
+          .attr("width", function (d, i) {
+            return 1
+          })
+          .attr("height", function (d, i) {
+            return 1
+          })
+          .attr("opacity", 1)
+          .attr("xlink:href", function (d, i) {
+            return d.image;
+          })
+
+      // Animate images
+      this.data.circles_images
+        .transition()
+          .delay(500)
+          .duration(500)
+          .attr("x", function (d, i) {
+            return section_horizontal * 0.5 - ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2;
+          })
+          .attr("y", function (d, i) {
+            return section_vertical * 0.6 - ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2;
+          })
+          .attr("width", function (d, i) {
+            return ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min)
+          })
+          .attr("height", function (d, i) {
+            return ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min)
+          })
+
+      this.data.circles_masks = this.data.circles_groups
+        .append("circle")
+          .attr("fill", "url(#pattern-diagonal)")
+          .attr("cx", function (d, i) {
+            // storing here some data
+            this._data = {
+              clicked: false
+            }
+
+            return section_horizontal * 0.5;
+          })
+          .attr("cy", function (d, i) {
+            return section_vertical * 0.6;
+          })
+          .attr("r", function (d, i) {
+            return ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2 + 1
+          })
+          .attr("opacity", 1)
+        // Events
+          .on("mouseover", function (d, i) {
+            that.toggleCircle(this, d, i, true, 500)
+          })
+          .on("mouseout", function (d, i) {
+            that.toggleCircle(this, d, i, false, 500)
+          })
+          .on("click", function (d, i) {
+            this._data.clicked = !this._data.clicked
+            that.toggleCircle(this, d, i, this._data.clicked, this._data.clicked ? 0 : 500)
+          })
+
+      this.data.circles_titles = this.data.circles_groups
+        .append("text")
+          .text(function (d) {
+            return d.name
+          })
+          .attr("dx", function (d, i) {
+            return ~~(section_horizontal / 2)
+          })
+          .attr("dy", function (d, i) {
+            return ~~(section_vertical * 1.1)
+          })
+          .attr("text-anchor", "middle")
+          .attr("font-size", '23px')
+          .attr("fill", "black")
+
+    }
+
+    /*
+      self is an element instance
+    */
+  , toggleCircle: function (self, d, i, activate, duration) {
+      activate = activate || false
+      duration = duration || 0
+      var that = this
+
+      // Do not deactivate if is clicked
+      if (activate === false && self._data.clicked) {
+        return
+      }
+
+      d3.select(self)
+        .transition()
+        .duration(duration)
+          .attr("opacity", activate ? 0 : 1)
+
+      // Show only necessary number
+      this.data.circles_images.each(function (d, _i) {
+        if (i == _i) {
+          d3.select(this)
+            .transition()
+            .duration(duration)
+            .attr("opacity", activate ? 0 : 1)
+        }
+      })
+
+      // Show only necessary number
+      this.data.circles.each(function (d, _i) {
+        if (i == _i) {
+          this._data.active = self._data.clicked
+
+          d3.select(this)
+            .transition()
+            .duration(duration)
+            .attr("stroke-width", activate ? that.options.stroke_width : 0)
+            .attr("r", ((that.options.value_function(d.active.occurences) - that.data.data_min) / that.data.scale_data_to_size + that.data.size_min) / 2 - (activate ? that.options.stroke_width / 2 : 0))
+        }
+      })
+
+      // Show only necessary number
+      this.data.circles_text.each(function (d, _i) {
+        if (i == _i) {
+          d3.select(this)
+            .transition()
+            .duration(duration)
+            .attr("opacity", activate ? 1 : 0)
+        }
+      })
+    }
+
+  , reordecCircles: function () {
       // body...
     }
 
@@ -412,7 +632,7 @@
             dateChange(this)
           })
 
-      var data_text = date_groups
+      var date_text = date_groups
         .append("text")
           .text(function (d) {
             return d.text
@@ -455,6 +675,11 @@
   , color_bg: '#3bbdb5'
   , color_bg_active: '#ef4b48'
   , data_source: 'data/dataset.json'
+  , value_function: Math.sqrt
+  , circle_size_rate : {
+      max: 1.0 / 1.8
+    , min: 1.0 / 4
+    }
   }
 
 }(window.jQuery);
