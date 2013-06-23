@@ -37,6 +37,7 @@
       this.loadData(function (data) {
         that.parseData(data)
         that.populateActiveData()
+        that.sortActiveData()
         that.drawCircles()
         that.drawDates()
       })
@@ -118,16 +119,19 @@
       */
 
       this.data.people = []
-      for(var i = names.length; i >= 0; i--) {
+      for(var i = names.length - 1; i >= 0; i--) {
         this.data.people[i] = {
           name: names[i]
         , image: ''
         , occurences: {
             total: 0
           }
+        , active: {  // used as active data for drawind and positioning circles
+            occurences: 0
+          , index_sorted: 0
+          }
         }
       }
-
 
       var person_index
         , people = this.data.people   // shorthand
@@ -231,7 +235,64 @@
       Empty object is associated with type: all
     */
   , populateActiveData: function (filter) {
-      filter = filter || {}
+      filter = filter || {type: 'all'}
+
+      var _person
+        , person
+
+      for (_person in this.data.people) {
+        person = this.data.people[_person]
+
+        if (filter.type == 'all') {
+          person.active.occurences = person.occurences.total
+        } else if (filter.type == 'year') {
+          person.active.occurences = person.occurences[filter.year].total
+        } else if (filter.type == 'month') {
+          person.active.occurences = person.occurences[filter.year][filter.month]
+        }
+      }
+
+    }
+
+    /*
+      Given an array of objects
+      Object value in stored by the key active.occurences
+      Indexed of the same sorted array are stored in active.index_sorted
+
+      [
+        {active: {occurences: 200}}
+        {active: {occurences: 150}}
+        {active: {occurences: 100}}
+      ]
+
+      =>
+
+      [
+        {active: {occurences: 200, index_sorted: 2}}
+        {active: {occurences: 150, index_sorted: 1}}
+        {active: {occurences: 100, index_sorted: 0}}
+      ]
+    */
+  , sortActiveData: function () {
+      var _data_sorted = this.data.people.map(function (a) {
+        return {name: a.name, occurences: a.active.occurences}
+      })
+      _data_sorted.sort(function (a, b) {
+        return (b.occurences - a.occurences);
+      })
+
+      var _data_keys = []
+      for (var i in _data_sorted) {
+        _data_keys[_data_sorted[i].name] = i
+      }
+
+      var person
+      for (var _person in this.data.people) {
+        person = this.data.people[_person]
+
+        person.active.index_sorted = +_data_keys[person.name]
+      }
+
     }
 
   , drawCircles: function () {
