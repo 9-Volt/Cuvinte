@@ -1,4 +1,4 @@
-# Cuvinte
+# Words Frequency Visualisation
 
 ## How to run Grunt
 
