@@ -324,6 +324,8 @@
         , size_min = ~~(section_horizontal * this.options.circle_size_rate.min) // minimal size of circle
         , scale_data_to_size = (data_max - data_min) / (size_max - size_min) // scale real data to our screen
 
+      this.data.section_horizontal = section_horizontal
+      this.data.section_vertical = section_vertical
       this.data.data_max = data_max
       this.data.data_min = data_min
       this.data.size_max = size_max
@@ -516,7 +518,72 @@
     }
 
   , reordecCircles: function () {
-      // body...
+      var that = this
+        , value_function = this.options.value_function
+        , section_horizontal = this.data.section_horizontal
+        , section_vertical = this.data.section_vertical
+        , data_max = this.data.data_max
+        , data_min = this.data.data_min
+        , size_max = this.data.size_max
+        , size_min = this.data.size_min
+        , scale_data_to_size = this.data.scale_data_to_size
+
+      // push data
+      this.data.circles_groups
+        .data(this.data.people)
+      // resize circles
+        .select("image")
+        .transition()
+          .duration(500)
+          .attr("x", function (d, i) {
+            return section_horizontal * 0.5 - ((value_function(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2;
+          })
+          .attr("y", function (d, i) {
+            return section_vertical * 0.6 - ((value_function(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2;
+          })
+          .attr("width", function (d, i) {
+            return ((value_function(d.active.occurences) - data_min) / scale_data_to_size + size_min)
+          })
+          .attr("height", function (d, i) {
+            return ((value_function(d.active.occurences) - data_min) / scale_data_to_size + size_min)
+          })
+
+      this.data.circles
+        .transition()
+          .duration(500)
+        .attr("r", function (d, i) {
+          return ((value_function(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2 - (this._data.active ? that.options.stroke_width / 2 : 0)
+        })
+
+      this.data.circles_masks
+        .transition()
+          .duration(500)
+        .attr("cx", function (d, i) {
+          return section_horizontal * 0.5;
+        })
+        .attr("cy", function (d, i) {
+          return section_vertical * 0.6;
+        })
+        .attr("r", function (d, i) {
+          return ((value_function(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2 + 1
+        })
+
+      // move groups
+      this.data.circles_groups
+        .transition()
+          .delay(1000)
+          .duration(1000)
+          .attr("transform", function (d, i) {
+            var x = section_horizontal * ((d.active.index_sorted % 5) + 0.25)
+              , y = section_vertical * (~~(d.active.index_sorted / 5) - 0.23);
+            return "translate(" + x + ", " + y + ")"
+          })
+
+      this.data.circles_text
+        .text(function (d) {
+          return d.active.occurences
+        })
+
     }
 
   , drawDates: function () {
@@ -544,6 +611,9 @@
           , y: 0
           , width: 0
           , height: timeline_height
+          , type: "all"
+          , year: 0
+          , month: 0
           }
 
           if (d.type === "timeline") {
@@ -571,6 +641,10 @@
 
             // width
             this._data.width = _year_width
+
+            // type
+            this._data.type = "year"
+            this._data.year = d.year
           } else if (d.type === "month") {
             // x
             this._data.x = ~~(_year_start + (d.month - _year_start_month) * month_width)
@@ -586,12 +660,17 @@
               // Find where next month will start, decrease this value+1 in order to have 1px space
               this._data.width = ~~(_year_start + (d.month + 1 - _year_start_month) * month_width) - ~~(_year_start + (d.month - _year_start_month) * month_width) - 1
             }
+
+            // type
+            this._data.type = "month"
+            this._data.year = d.year
+            this._data.month = d.month
           }
 
           return "translate(" + this._data.x + ", " + this._data.y + ")"
         })
 
-      function dateChange (self) {
+      function dateChange (self, filter) {
         // == Change active date ==
         date_rectangles
           .transition()
@@ -606,9 +685,11 @@
 
         // == Reorder circles ==
 
-        // data = refilData(data, d.type);
+        that.populateActiveData(filter)
 
-        // reorderGroups.call(this, d, i)
+        that.sortActiveData()
+
+        that.reordecCircles()
       }
 
       var date_rectangles = date_groups
@@ -629,7 +710,7 @@
           .attr("y", 0)
         // Events
           .on("click", function (d, i) {
-            dateChange(this)
+            dateChange(this, this.parentNode._data)
           })
 
       var date_text = date_groups
@@ -648,7 +729,7 @@
           .attr("fill", "white")
         // Events
           .on("click", function (d, i) {
-            dateChange(this)
+            dateChange(this, this.parentNode._data)
           })
 
     }
