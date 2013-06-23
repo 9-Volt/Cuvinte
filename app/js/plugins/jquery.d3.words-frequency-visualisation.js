@@ -522,11 +522,29 @@
         , value_function = this.options.value_function
         , section_horizontal = this.data.section_horizontal
         , section_vertical = this.data.section_vertical
-        , data_max = this.data.data_max
-        , data_min = this.data.data_min
-        , size_max = this.data.size_max
-        , size_min = this.data.size_min
-        , scale_data_to_size = this.data.scale_data_to_size
+        , data_max = this.options.value_function(this.data.people.reduce(function (a, b) {
+            if (a > b.active.occurences) {
+              return a
+            } else {
+              return b.active.occurences
+            }
+          }, -1))
+        , data_min = this.options.value_function(this.data.people.reduce(function (a, b) {
+            if (a >= 0 && a < b.active.occurences) {
+              return a
+            } else {
+              return b.active.occurences
+            }
+          }, -1))
+        , size_max = ~~(section_horizontal * this.options.circle_size_rate.max) // maximal size of circle
+        , size_min = ~~(section_horizontal * this.options.circle_size_rate.min) // minimal size of circle
+        , scale_data_to_size = (data_max - data_min) / (size_max - size_min) // scale real data to our screen
+
+      this.data.data_max = data_max
+      this.data.data_min = data_min
+      this.data.size_max = size_max
+      this.data.size_min = size_min
+      this.data.scale_data_to_size = scale_data_to_size
 
       // push data
       this.data.circles_groups
