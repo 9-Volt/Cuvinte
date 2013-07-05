@@ -20,6 +20,8 @@
       this.$element = $(element)
       this.options = $.extend({}, $.fn.words_mentions.defaults, this.$element.data(), options)
 
+      this.$graphs = $(this.options.graphs_container_selector)
+
       // svg data
       this.data = {
         width: this.$element.width()
@@ -40,6 +42,7 @@
         that.sortActiveData()
         that.drawCircles()
         that.drawDates()
+        that.drawGraph()
       })
     }
 
@@ -752,6 +755,82 @@
 
     }
 
+  , drawGraph: function () {
+      var that = this
+      this.$graphs.empty()
+
+      this.data.svg_graph = d3.select(this.$graphs[0])
+        .append("svg")
+        .attr("width", this.data.width)
+        .attr("height", this.options.graph_height)
+
+      var lineFunction = d3.svg.line()
+        .x(function(d, i) {return i*that.data.width / occurences.length; })
+        .y(function(d) {return d*scale; })
+        .interpolate("basis ")
+
+      var occurences = []
+        , year
+      for (var _year in this.data.people[0].occurences) {
+        year = this.data.people[0].occurences[_year]
+
+        for (var _month in year) {
+          if (_month == 'total')
+            continue
+          occurences.push(year[_month])
+        }
+      }
+
+      var max = occurences.reduce(function (a, b) {
+        if (a > b) {
+          return a
+        } else {
+          return b
+        }
+      }, -1)
+
+      var scale = 1.0 * this.options.graph_height / max
+
+      var paths = []
+      for (var _i in occurences) {
+        if (_i == 0)
+          continue
+
+        paths.push({
+          x0: (_i-1) * this.data.width / occurences.length
+        , y0: this.options.graph_height - occurences[_i - 1] * scale
+        , x1: _i * this.data.width / occurences.length
+        , y1: this.options.graph_height - occurences[_i] * scale
+        })
+      }
+
+      // Between 0 and 1.
+      var curvature = 0.5
+
+      function get_path(link) {
+        var x0 = link.x0;
+        var x1 = link.x1;
+        var xi = d3.interpolateNumber(x0, x1);
+        var x2 = xi(curvature);
+        var x3 = xi(1 - curvature);
+        var y0 = link.y0;
+        var y1 = link.y1;
+
+        return "M" + x0 + "," + y0
+          + "C" + x2 + "," + y0
+          + " " + x3 + "," + y1
+          + " " + x1 + "," + y1;
+      }
+
+      this.data.svg_graph.selectAll("path")
+        .data(paths)
+        .enter().append("path")
+        .attr("d", function(d) { console.log(get_path(d));return get_path(d); })
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2)
+        .attr("fill", "none")
+    }
+
   }
 
  /* PLUGIN DEFINITION
@@ -785,6 +864,8 @@
   , text_occurences_size: '24px'
   , text_names_size: '21px'
   , text_dates_size: '16px'
+  , graphs_container_selector: '#words-frequency-graphs'
+  , graph_height: 128
   }
 
 }(window.jQuery);
