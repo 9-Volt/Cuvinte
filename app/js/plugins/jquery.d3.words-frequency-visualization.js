@@ -20,7 +20,7 @@
       this.$element = $(element)
       this.options = $.extend({}, $.fn.words_mentions.defaults, this.$element.data(), options)
 
-      this.$graphs = $(this.options.graphs_container_selector)
+      this.$graphs = $(this.options.graphs_container_selector).empty()
 
       // svg data
       this.data = {
@@ -42,7 +42,6 @@
         that.sortActiveData()
         that.drawCircles()
         that.drawDates()
-        that.drawGraph()
       })
     }
 
@@ -735,84 +734,6 @@
 
     }
 
-  , drawGraph: function () {
-      var that = this
-      this.$graphs.empty()
-
-      var occurences = []
-        , year
-      for (var _year in this.data.people[0].occurences) {
-        year = this.data.people[0].occurences[_year]
-
-        for (var _month in year) {
-          if (_month == 'total')
-            continue
-          occurences.push(year[_month])
-        }
-      }
-
-      var max = occurences.reduce(function (a, b) {
-        if (a > b) {
-          return a
-        } else {
-          return b
-        }
-      }, -1)
-
-      var scale = 1.0 * this.options.graph_height / max
-
-      var paths = []
-      for (var _i in occurences) {
-        if (_i == 0)
-          continue
-
-        paths.push({
-          x0: (_i-1) * this.data.width / occurences.length
-        , y0: this.options.graph_height - occurences[_i - 1] * scale
-        , x1: _i * this.data.width / occurences.length
-        , y1: this.options.graph_height - occurences[_i] * scale
-        })
-      }
-
-      // Between 0 and 1.
-      var curvature = 0.5
-
-      function get_path(link) {
-        var x0 = link.x0;
-        var x1 = link.x1;
-        var xi = d3.interpolateNumber(x0, x1);
-        var x2 = xi(curvature);
-        var x3 = xi(1 - curvature);
-        var y0 = link.y0;
-        var y1 = link.y1;
-
-        return "M" + x0 + "," + y0
-          + "C" + x2 + "," + y0
-          + " " + x3 + "," + y1
-          + " " + x1 + "," + y1;
-      }
-
-      // Init graph container
-      var $graph_container = $('<div class="graph"/>').appendTo(this.$graphs)
-
-      for(var _i in paths) {
-        $('<div class="graph-column"/>').width(15).appendTo($graph_container)
-      }
-
-      this.data.svg_graph = d3.select($graph_container[0])
-        .append("svg")
-        .attr("width", this.data.width)
-        .attr("height", this.options.graph_height)
-
-      this.data.svg_graph.selectAll("path")
-        .data(paths)
-        .enter().append("path")
-        .attr("d", function(d) { return get_path(d); })
-        .attr("stroke", "blue")
-        .attr("stroke-width", 2)
-        .attr("fill", "none")
-    }
-
   , toggleGraph: function (d, active) {
       if (active) {
         this.createGraph(d)
@@ -825,7 +746,13 @@
       var that = this
 
       d.$graph = $('<div class="graph"/>').appendTo(this.$graphs)
-      console.log(d)
+
+      // Add graph columns
+      for (var _i in this.data.timeline) {
+        if (this.data.timeline[_i].type === 'month') {
+          $('<div class="graph-column"/>').width(this.data.timeline[_i].width).appendTo(d.$graph)
+        }
+      }
 
       // Retrieve all occurences
       var occurences = []
