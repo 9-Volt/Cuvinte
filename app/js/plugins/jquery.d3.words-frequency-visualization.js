@@ -231,6 +231,7 @@
           month_end = Math.max(month_start, _month)
         }
 
+
         // year positions
         _year_start = Math.max(1, ~~(month_last * month_width))
         _year_width = ~~((month_last + (+month_end) - month_start + 1) * month_width) - Math.max(1, ~~(month_last * month_width)) - 1
@@ -849,7 +850,14 @@
         })
       }
 
-      console.log(occurences, occurence_max, points, this.data.timeline)
+      // Get graph X points
+      var _point_counter = 0
+      for (var _i in this.data.timeline) {
+        if (this.data.timeline[_i].type === 'month') {
+          points[_point_counter].x = this.data.timeline[_i].x + this.data.timeline[_i].width / 2
+          _point_counter += 1
+        }
+      }
 
       // Add svg container
       d.graph = d3.select(d.$graph[0])
@@ -858,14 +866,14 @@
         .attr("height", graph_height)
 
       var lineFunction = d3.svg.line()
-        .x(function(d, i) { return (i*that.data.width / occurences.length) + that.month_width/2; })
-        .y(function(d) { return graph_height - d*scale; })
+        .x(function(d, i) { return d.x; })
+        .y(function(d) { return d.y; })
         .interpolate("basis")
 
       // Add path
       d.graph
         .append("path")
-        .attr("d", lineFunction(occurences))
+        .attr("d", lineFunction(points))
         .attr("stroke", this.options.graphs_line_color)
         .attr("stroke-width", this.options.graphs_line_width)
         .attr("fill", "none")
