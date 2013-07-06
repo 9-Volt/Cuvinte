@@ -449,6 +449,7 @@
           .on("click", function (d, i) {
             this._data.clicked = !this._data.clicked
             that.toggleCircle(this, d, i, this._data.clicked, this._data.clicked ? 0 : 500)
+            that.toggleGraph(d, this._data.clicked)
           })
 
       this.data.circles_titles = this.data.circles_groups
@@ -619,6 +620,8 @@
         , _year_width
         , _year_start_month
 
+      this.month_width = month_width
+
       /*
         Add dates groups
       */
@@ -759,16 +762,6 @@
       var that = this
       this.$graphs.empty()
 
-      this.data.svg_graph = d3.select(this.$graphs[0])
-        .append("svg")
-        .attr("width", this.data.width)
-        .attr("height", this.options.graph_height)
-
-      var lineFunction = d3.svg.line()
-        .x(function(d, i) {return i*that.data.width / occurences.length; })
-        .y(function(d) {return d*scale; })
-        .interpolate("basis ")
-
       var occurences = []
         , year
       for (var _year in this.data.people[0].occurences) {
@@ -822,13 +815,90 @@
           + " " + x1 + "," + y1;
       }
 
+            // Init graph container
+      var $graph_container = $('<div class="graph"/>').appendTo(this.$graphs)
+
+      for(var _i in paths) {
+        $('<div class="graph-column"/>').width(15).appendTo($graph_container)
+      }
+
+      this.data.svg_graph = d3.select($graph_container[0])
+        .append("svg")
+        .attr("width", this.data.width)
+        .attr("height", this.options.graph_height)
+
       this.data.svg_graph.selectAll("path")
         .data(paths)
         .enter().append("path")
-        .attr("d", function(d) { console.log(get_path(d));return get_path(d); })
+        .attr("d", function(d) { return get_path(d); })
         .attr("stroke", "blue")
         .attr("stroke-width", 2)
         .attr("fill", "none")
+    }
+
+  , toggleGraph: function (d, active) {
+      if (active) {
+        this.createGraph(d)
+      } else {
+        this.destroyGraph(d)
+      }
+    }
+
+  , createGraph: function (d) {
+      var that = this
+
+      d.$graph = $('<div class="graph"/>').appendTo(this.$graphs)
+      console.log(d)
+
+      // Retrieve all occurences
+      var occurences = []
+      for (var _year in d.occurences) {
+        for (var _month in d.occurences[_year]) {
+          if (_month == 'total')
+            continue
+          occurences.push(d.occurences[_year][_month])
+        }
+      }
+
+      // Get scale
+      var occurence_max = occurences.reduce(function (a, b) {return a > b ? a : b;}, -1)
+        , graph_height = d.$graph.height()
+        , scale = 1.0 * graph_height / occurence_max
+
+      // Get graph Y points
+      var points = []
+      for (var _i in occurences) {
+        if (_i == 0) continue;
+
+        points.push({
+          y0: graph_height - occurences[_i - 1] * scale
+        , y1: graph_height - occurences[_i] * scale
+        })
+      }
+
+      console.log(occurences, occurence_max, points)
+
+      d.graph = d3.select(d.$graph[0])
+        .append("svg")
+        .attr("width", this.data.width)
+        .attr("height", graph_height)
+
+      var lineFunction = d3.svg.line()
+        .x(function(d, i) { return (i*that.data.width / occurences.length) + that.month_width/2; })
+        .y(function(d) { return graph_height - d*scale; })
+        .interpolate("basis")
+
+      d.graph
+        .append("path")
+        .attr("d", lineFunction(occurences))
+        .attr("stroke", this.options.graphs_line_color)
+        .attr("stroke-width", this.options.graphs_line_width)
+        .attr("fill", "none")
+    }
+
+  , destroyGraph: function (d) {
+      d.graph.remove()
+      d.$graph.remove()
     }
 
   }
@@ -865,6 +935,9 @@
   , text_names_size: '21px'
   , text_dates_size: '16px'
   , graphs_container_selector: '#words-frequency-graphs'
+  , graphs_line_color: '#ef4b48'
+  , graphs_line_width: 1.2
+
   , graph_height: 128
   }
 

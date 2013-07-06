@@ -267,6 +267,22 @@ body {
   margin: 0 auto;
   font-family: "DINNextLTPro-LightCondensed", Arial, 'Helvetica Neue', Helvetica, sans-serif;
 }
+#words-frequency #words-frequency-graphs .graph {
+  position: relative;
+  border-bottom: 1px solid #3bbdb5;
+  height: 128px;
+}
+#words-frequency #words-frequency-graphs .graph .graph-column {
+  float: left;
+  width: 0;
+  height: 128px;
+  background: url(../img/bg-graph-line.png) 50% 0 repeat-y;
+}
+#words-frequency #words-frequency-graphs .graph svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
 #words-frequency .footer {
   min-height: 119px;
 }
