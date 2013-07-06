@@ -172,14 +172,6 @@
       */
       this.data.timeline.length = names.length
 
-      // Push general timeline
-      this.data.timeline.push(
-        {
-          type: "timeline"
-        , text: "TOTAL"
-        }
-      )
-
       var month_start
         , month_end
         , month_last = 0
@@ -189,8 +181,44 @@
       this.data.month_first = 0
       this.data.month_last = 0
 
+      // Find year start and end, month start and end
+      for(var _year in data) {
+        this.data.year_start = Math.min(this.data.year_start, _year)
+        this.data.year_end = Math.max(this.data.year_end, _year)
+        for(var _month in data[_year]) {
+          this.data.year_start == _year && this.data.month_first == 0 && (this.data.month_first = +_month)
+          this.data.year_end == _year && (this.data.month_last = +_month)
+        }
+      }
+
+      var that = this
+        , count_months = (13 - this.data.month_first) + this.data.month_last + Math.max(0, (this.data.year_end - this.data.year_start - 1) * 12)
+        , month_width = (this.data.width / count_months) // size of one month
+        , timeline_height = ~~(month_width)
+        // in-cycle variables
+        , _year_start
+        , _year_end
+        , _year_width
+        , _year_start_month
+
+      // Used later to center text
+      this.data.timeline_height = timeline_height
+
+      // Push general timeline
+      this.data.timeline.push(
+        {
+          type: "all"
+        , text: "TOTAL"
+        , x: 1
+        , y: that.data.height - (timeline_height + 1) * 3
+        , width: this.data.width - 2
+        , height: timeline_height
+        }
+      )
+
       // itterate through years and months
       for(var _year in data) {
+        _year = +_year
         this.data.year_start = Math.min(this.data.year_start, _year)
         this.data.year_end = Math.max(this.data.year_end, _year)
 
@@ -203,33 +231,51 @@
           month_end = Math.max(month_start, _month)
         }
 
+        // year positions
+        _year_start = Math.max(1, ~~(month_last * month_width))
+        _year_width = ~~((month_last + (+month_end) - month_start + 1) * month_width) - Math.max(1, ~~(month_last * month_width)) - 1
+        _year_end = _year_start + _year_width
+        _year_start_month = +month_start
+
         // set year data
         this.data.timeline.push({
           "type": "year"
-        , "months": month_end - month_start + 1
-        , "year":+_year
-        , "month_start": +month_start
-        , "month_end": +month_end
-        , "date_month_start": month_last
+        , "year": _year
         , "text": _year
+        , x: Math.max(1, ~~(month_last * month_width))
+        , y: that.data.height - (timeline_height + 1) * 2
+        , width: _year_width
+        , height: timeline_height
         })
 
         month_last += month_end - month_start + 1
 
         // itterate through each month
         for(var _month in data[_year]) {
-          this.data.year_start == _year && this.data.month_first == 0 && (this.data.month_first = +_month)
-          this.data.year_end == _year && (this.data.month_last = +_month)
+          _month = +_month
+          this.data.year_start == _year && this.data.month_first == 0 && (this.data.month_first = _month)
+          this.data.year_end == _year && (this.data.month_last = _month)
 
           this.data.timeline.push({
             "type": "month"
-          , "month": +_month
-          , "year": +_year
-          , "is_last": false
+          , "month": _month
+          , "year": _year
           , "text": _month
+          , x: ~~(_year_start + (_month - _year_start_month) * month_width)
+          , y: that.data.height - (timeline_height + 1)
+          , height: timeline_height
           })
+
+          // width
+          if (_year === this.data.year_end && _month === this.data.month_last) {
+            // Find where year will end and decrease month start
+            this.data.timeline[this.data.timeline.length - 1].width = _year_end - ~~(_year_start + (_month - _year_start_month) * month_width)
+          } else {
+            // Find where next month will start, decrease this value+1 in order to have 1px space
+            this.data.timeline[this.data.timeline.length - 1].width = ~~(_year_start + (_month + 1 - _year_start_month) * month_width) - ~~(_year_start + (_month - _year_start_month) * month_width) - 1
+          }
+
         }
-        this.data.timeline[this.data.timeline.length - 1].is_last = true
       }
 
     }
@@ -610,17 +656,6 @@
 
   , drawDates: function () {
       var that = this
-        , count_years = this.data.year_end - this.data.year_start + 1
-        , count_months = (13 - this.data.month_first) + this.data.month_last + Math.max(0, (this.data.year_end - this.data.year_start - 1) * 12)
-        , month_width = (this.data.width / count_months) // size of one month
-        , timeline_height = ~~(month_width)
-        // in-cycle variables
-        , _year_start
-        , _year_end
-        , _year_width
-        , _year_start_month
-
-      this.month_width = month_width
 
       /*
         Add dates groups
@@ -629,67 +664,8 @@
         .selectAll("g")
           .data(this.data.timeline)
         .enter().append("g")
-        .attr("transform", function (d, i) {
-          this._data = {
-            x: 0
-          , y: 0
-          , width: 0
-          , height: timeline_height
-          , type: "all"
-          , year: 0
-          , month: 0
-          }
-
-          if (d.type === "timeline") {
-            // x
-            this._data.x = 1
-
-            // y
-            this._data.y = that.data.height - (timeline_height + 1) * 3
-
-            // width
-            this._data.width = that.data.width - 2
-          } else if (d.type === "year") {
-            // Implies that months are comming right after years
-            // year positions
-            _year_start = Math.max(1, ~~(d.date_month_start * month_width))
-            _year_width = ~~((d.date_month_start + d.months) * month_width) - Math.max(1, ~~(d.date_month_start * month_width)) - 1
-            _year_end = _year_start + _year_width
-            _year_start_month = d.month_start
-
-            // x
-            this._data.x = Math.max(1, ~~(d.date_month_start * month_width))
-
-            // y
-            this._data.y = that.data.height - (timeline_height + 1) * 2
-
-            // width
-            this._data.width = _year_width
-
-            // type
-            this._data.type = "year"
-            this._data.year = d.year
-          } else if (d.type === "month") {
-            // x
-            this._data.x = ~~(_year_start + (d.month - _year_start_month) * month_width)
-
-            // y
-            this._data.y = that.data.height - (timeline_height + 1)
-
-            // width
-            if (d.is_last) {
-              // Find where year will end and decrease month start
-              this._data.width = _year_end - ~~(_year_start + (d.month - _year_start_month) * month_width)
-            } else {
-              // Find where next month will start, decrease this value+1 in order to have 1px space
-              this._data.width = ~~(_year_start + (d.month + 1 - _year_start_month) * month_width) - ~~(_year_start + (d.month - _year_start_month) * month_width) - 1
-            }
-
-            // type
-            this._data.type = "month"
-            this._data.year = d.year
-            this._data.month = d.month
-          }
+        .attr("transform", function (d) {
+          this._data = $.extend({}, d)
 
           return "translate(" + this._data.x + ", " + this._data.y + ")"
         })
@@ -720,7 +696,7 @@
         .append("rect")
           .style("stroke-width", 0)
           .style("fill", function (d, i) {
-            return d.type === "timeline" ? that.options.color_bg_active : that.options.color_bg
+            return d.type === "all" ? that.options.color_bg_active : that.options.color_bg
           })
         // Sizes
           .attr("height", function (d, i) {
@@ -746,7 +722,7 @@
             return this.parentNode._data.width / 2
           })
           .attr("dy", function (d, i) {
-            return timeline_height - (timeline_height / 4)
+            return that.data.timeline_height - (that.data.timeline_height / 4)
           })
           .attr("text-anchor", "middle")
           .attr("font-size", this.options.text_dates_size)
@@ -815,7 +791,7 @@
           + " " + x1 + "," + y1;
       }
 
-            // Init graph container
+      // Init graph container
       var $graph_container = $('<div class="graph"/>').appendTo(this.$graphs)
 
       for(var _i in paths) {
@@ -868,16 +844,14 @@
       // Get graph Y points
       var points = []
       for (var _i in occurences) {
-        if (_i == 0) continue;
-
         points.push({
-          y0: graph_height - occurences[_i - 1] * scale
-        , y1: graph_height - occurences[_i] * scale
+          y: graph_height - occurences[_i] * scale
         })
       }
 
-      console.log(occurences, occurence_max, points)
+      console.log(occurences, occurence_max, points, this.data.timeline)
 
+      // Add svg container
       d.graph = d3.select(d.$graph[0])
         .append("svg")
         .attr("width", this.data.width)
@@ -888,6 +862,7 @@
         .y(function(d) { return graph_height - d*scale; })
         .interpolate("basis")
 
+      // Add path
       d.graph
         .append("path")
         .attr("d", lineFunction(occurences))
