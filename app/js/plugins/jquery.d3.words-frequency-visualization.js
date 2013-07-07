@@ -174,24 +174,18 @@
       var month_start
         , month_end
         , month_last = 0
-
-      this.data.year_start = 9999
-      this.data.year_end = 0
-      this.data.month_first = 0
-      this.data.month_last = 0
+        , count_months = 0
+        , year_last = 0
 
       // Find year start and end, month start and end
       for(var _year in data) {
-        this.data.year_start = Math.min(this.data.year_start, _year)
-        this.data.year_end = Math.max(this.data.year_end, _year)
+        this.data.year_last = Math.max(this.data.year_last, _year)
         for(var _month in data[_year]) {
-          this.data.year_start == _year && this.data.month_first == 0 && (this.data.month_first = +_month)
-          this.data.year_end == _year && (this.data.month_last = +_month)
+          count_months += 1
         }
       }
 
       var that = this
-        , count_months = (13 - this.data.month_first) + this.data.month_last + Math.max(0, (this.data.year_end - this.data.year_start - 1) * 12)
         , month_width = (this.data.width / count_months) // size of one month
         , timeline_height = ~~(month_width)
         // in-cycle variables
@@ -211,15 +205,12 @@
         , x: 1
         , y: that.data.height - (timeline_height + 1) * 3
         , width: this.data.width - 2
-        , height: timeline_height
         }
       )
 
       // itterate through years and months
       for(var _year in data) {
         _year = +_year
-        this.data.year_start = Math.min(this.data.year_start, _year)
-        this.data.year_end = Math.max(this.data.year_end, _year)
 
         month_start = 12
         month_end = 0
@@ -229,7 +220,6 @@
           month_start = Math.min(month_start, _month)
           month_end = Math.max(month_start, _month)
         }
-
 
         // year positions
         _year_start = Math.max(1, ~~(month_last * month_width))
@@ -245,7 +235,6 @@
         , x: Math.max(1, ~~(month_last * month_width))
         , y: that.data.height - (timeline_height + 1) * 2
         , width: _year_width
-        , height: timeline_height
         })
 
         month_last += month_end - month_start + 1
@@ -253,8 +242,6 @@
         // itterate through each month
         for(var _month in data[_year]) {
           _month = +_month
-          this.data.year_start == _year && this.data.month_first == 0 && (this.data.month_first = _month)
-          this.data.year_end == _year && (this.data.month_last = _month)
 
           this.data.timeline.push({
             "type": "month"
@@ -263,11 +250,10 @@
           , "text": _month
           , x: ~~(_year_start + (_month - _year_start_month) * month_width)
           , y: that.data.height - (timeline_height + 1)
-          , height: timeline_height
           })
 
           // width
-          if (_year === this.data.year_end && _month === this.data.month_last) {
+          if (_year === year_last && _month === month_end) {
             // Find where year will end and decrease month start
             this.data.timeline[this.data.timeline.length - 1].width = _year_end - ~~(_year_start + (_month - _year_start_month) * month_width)
           } else {
@@ -656,6 +642,7 @@
 
   , drawDates: function () {
       var that = this
+        , timeline_height = that.data.timeline_height
 
       /*
         Add dates groups
@@ -665,7 +652,7 @@
           .data(this.data.timeline)
         .enter().append("g")
         .attr("transform", function (d) {
-          this._data = $.extend({}, d)
+          this._data = $.extend({height: timeline_height}, d)
 
           return "translate(" + this._data.x + ", " + this._data.y + ")"
         })
@@ -722,7 +709,7 @@
             return this.parentNode._data.width / 2
           })
           .attr("dy", function (d, i) {
-            return that.data.timeline_height - (that.data.timeline_height / 4)
+            return timeline_height - (timeline_height / 4)
           })
           .attr("text-anchor", "middle")
           .attr("font-size", this.options.text_dates_size)
