@@ -274,6 +274,7 @@
 
       Empty object is associated with type: all
     */
+
   , populateActiveData: function (filter) {
       filter = filter || {type: 'all'}
 
@@ -313,6 +314,7 @@
         {active: {occurences: 100, index_sorted: 0}}
       ]
     */
+
   , sortActiveData: function () {
       var _data_sorted = this.data.people.map(function (a) {
         return {name: a.name, occurences: a.active.occurences}
@@ -504,6 +506,7 @@
     /*
       self is an element instance
     */
+
   , toggleCircle: function (self, d, i, activate, duration) {
       activate = activate || false
       duration = duration || 0
@@ -783,6 +786,16 @@
         .x(function(d, i) { return d.x; })
         .y(function(d) { return d.y; })
         .interpolate("basis")
+
+      // Add image
+      d.graph
+        .append("image")
+          .attr("x", 10)
+          .attr("y", 14)
+          .attr("width", 100)
+          .attr("height", 100)
+          .attr("opacity", 1)
+          .attr("xlink:href", d.image)
 
       // Add path
       d.graph
