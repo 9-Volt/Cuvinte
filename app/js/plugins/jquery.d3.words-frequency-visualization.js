@@ -797,6 +797,15 @@
           .attr("opacity", 1)
           .attr("xlink:href", d.image)
 
+      // Add image overlay
+      d.graph
+        .append("circle")
+          .attr("fill", "url(#pattern-diagonal)")
+          .attr("cx", 60)
+          .attr("cy", 64)
+          .attr("r", 50)
+          .attr("opacity", 1)
+
       // Add path
       d.graph
         .append("path")
@@ -804,6 +813,7 @@
         .attr("stroke", this.options.graphs_line_color)
         .attr("stroke-width", this.options.graphs_line_width)
         .attr("fill", "none")
+
     }
 
   , destroyGraph: function (d) {
