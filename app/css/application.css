@@ -287,6 +287,47 @@ body {
   top: 0;
   left: 0;
 }
+#words-frequency #words-frequency-graphs .graph .graph-pointer {
+  position: absolute;
+  top: 50px;
+  left: 100px;
+  display: none;
+  background: red;
+  color: white;
+  line-height: 26px;
+  height: 20px;
+  padding: 0 4px;
+}
+#words-frequency #words-frequency-graphs .graph .graph-pointer:before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  margin: 0 0 0 -5px;
+  width: 0;
+  height: 0;
+  border-top: 5px solid red;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+}
+#words-frequency #words-frequency-graphs .graph .graph-pointer:after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  margin: 0 0 0 -4px;
+  bottom: -16px;
+  width: 8px;
+  height: 8px;
+  background: red;
+  border-radius: 4px;
+}
+#words-frequency #words-frequency-graphs .graph .graph-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
 #words-frequency .footer {
   min-height: 119px;
 }

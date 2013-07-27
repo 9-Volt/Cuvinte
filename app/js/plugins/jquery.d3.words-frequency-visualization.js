@@ -755,15 +755,19 @@
       }
 
       // Get scale
-      var occurence_max = occurences.reduce(function (a, b) {return a > b ? a : b;}, -1)
+      var occurence_min = d3.min(occurences)
+        , occurence_max = d3.max(occurences)
         , graph_height = d.$graph.height()
-        , scale = 1.0 * graph_height / occurence_max
+        , scaleY = d3.scale.linear()
+          .domain([occurence_min, occurence_max])
+          .range([0, graph_height])
 
       // Get graph Y points
       var points = []
       for (var _i in occurences) {
         points.push({
-          y: graph_height - occurences[_i] * scale
+          y: graph_height - scaleY(occurences[_i])
+        , 'occurences': occurences[_i]
         })
       }
 
@@ -772,6 +776,9 @@
       for (var _i in this.data.timeline) {
         if (this.data.timeline[_i].type === 'month') {
           points[_point_counter].x = this.data.timeline[_i].x + this.data.timeline[_i].width / 2
+          // Starting and ending point
+          points[_point_counter].x1 = this.data.timeline[_i].x
+          points[_point_counter].x2 = this.data.timeline[_i].x + this.data.timeline[_i].width
           _point_counter += 1
         }
       }
@@ -781,6 +788,7 @@
         .append("svg")
         .attr("width", this.data.width)
         .attr("height", graph_height)
+
 
       var lineFunction = d3.svg.line()
         .x(function(d, i) { return d.x; })
@@ -807,12 +815,80 @@
           .attr("opacity", 1)
 
       // Add path
-      d.graph
+      var path = d.graph
         .append("path")
         .attr("d", lineFunction(points))
         .attr("stroke", this.options.graphs_line_color)
         .attr("stroke-width", this.options.graphs_line_width)
         .attr("fill", "none")
+
+      // Add pointer
+      d.$graph_pointer = $('<div class="graph-pointer">213</div>').appendTo(d.$graph)
+
+      // Use overlay to hook mouse events
+      d.$graph_overlay = $('<div class="graph-overlay"/>').appendTo(d.$graph)
+
+      d.$graph_overlay[0].pointerColumn = 0
+
+      var pointerHide = function(){
+        d.$graph_pointer.css('display', 'none')
+      }
+
+      var findYatXbyBisection = function(x, path, error){
+        var length_end = path.getTotalLength()
+          , length_start = 0
+          , point = path.getPointAtLength((length_end + length_start) / 2) // get the middle point
+          , bisection_iterations_max = 50
+          , bisection_iterations = 0
+
+        error = error || 0.01
+
+        while (x < point.x - error || x > point.x + error) {
+          // get the middle point
+          point = path.getPointAtLength((length_end + length_start) / 2)
+
+          if (x < point.x) {
+            length_end = (length_start + length_end)/2
+          } else {
+            length_start = (length_start + length_end)/2
+          }
+
+          // Increase iteration
+          if(bisection_iterations_max < ++ bisection_iterations)
+            break;
+        }
+        return point.y
+      }
+
+      var pointerShow = function(column, data){
+        d.$graph_overlay[0].pointerColumn = column
+
+        d.$graph_pointer
+          .text(data.occurences)
+          .css({
+            top: findYatXbyBisection(data.x, path[0][0]) - 31 // pointer height
+          , left: data.x - (d.$graph_pointer.width()/2) - 4
+          , display: 'block'
+          })
+      }
+
+      d.$graph_overlay
+        .on('mousemove', function(ev){
+          // Check mouse column
+          for (var i = points.length - 1; i >= 0; i--) {
+            if (ev.offsetX > points[i].x1 && ev.offsetX < points[i].x2) {
+              // If active column is different from hovered now
+              if (i !== this.pointerColumn) {
+                pointerShow(i, points[i])
+              }
+              break;
+            }
+            points[i]
+          };
+        })
+        .on('mouseout', function(ev){
+          pointerHide()
+        })
 
     }
 
