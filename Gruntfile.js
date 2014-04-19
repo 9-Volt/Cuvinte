@@ -69,6 +69,15 @@ module.exports = function(grunt) {
         }
       },
       all: ['app/js/*.js']
+    },
+    concat: {
+      options: {
+        banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %> */' + "\n",
+      },
+      build: {
+        src: ['app/js/vendor/*', 'app/js/plugins/*'],
+        dest: 'app/js/build/jquery.d3.wfv.min.js'
+      }
     }
   });
 
@@ -77,6 +86,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-concat');
 
   // Tasks definitions
   grunt.registerTask('watchWithLiveReload', [
@@ -90,7 +100,8 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('build', [
-    'less:production'
+    'less:production',
+    'concat'
   ]);
 
   grunt.registerTask('default', [
