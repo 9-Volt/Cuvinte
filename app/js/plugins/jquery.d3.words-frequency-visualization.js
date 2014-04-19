@@ -51,7 +51,7 @@
           .append("pattern")
             .attr("id", "pattern-diagonal")
             .attr("patternUnits", "userSpaceOnUse")
-            .attr("preserveAspectRatio", "slice")
+            .attr("preserveAspectRatio", "xMaxYMax slice")
             .attr("width", 2)
             .attr("height", 2)
             .append("image")
