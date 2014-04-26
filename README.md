@@ -20,16 +20,16 @@ JSON object represents a tree with keys: `year -> month -> entity key -> (title 
 {
 "2009": {
   "1": {
-    "key1":{"name":"V. Ciobanu","occurences":99},
+    "key1":{"name":"V. Ciobanu","occurences":99.9999},
     "key2":{"name":"L. Ciobanu","occurences":115},
     "key3":{"name":"D. Ungureanu","occurences":2},
-    "key4":{"name":"S. Deleanu","occurences":63} 
+    "key4":{"name":"S. Deleanu","occurences":63}
   },
   "2": {
     "key1":{"name":"V. Ciobanu","occurences":23},
     "key2":{"name":"L. Ciobanu","occurences":53},
     "key3":{"name":"D. Ungureanu","occurences":7},
-    "key4":{"name":"S. Deleanu","occurences":34} 
+    "key4":{"name":"S. Deleanu","occurences":34}
   }
 }
 ```
@@ -38,7 +38,7 @@ Each entity should use only one unique key and the same name. Years and months s
 
 ## Plugin initialization
 
-To initialize visualization it is enough to load styles, script and run 
+To initialize visualization it is enough to load styles, script and run
 
 ```js
 $(function () {

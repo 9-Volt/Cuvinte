@@ -17,5 +17,6 @@ $(function () {
     , "S. Sârbu": "images/sarbu.png"
     , "I. Hadârcă": "images/hadarca.png"
     }
+  , rounding_function: function(a) {return Math.round(parseFloat(a)*100)/100}
   })
 });

@@ -382,7 +382,7 @@
       this.data.circles_text = this.data.circles_groups
         .append("text")
           .text(function (d) {
-            return d.active.occurences
+            return that.options.rounding_function(d.active.occurences)
           })
           .attr("dx", function (d, i) {
             return ~~(section_horizontal / 2)
@@ -638,7 +638,7 @@
 
       this.data.circles_text
         .text(function (d) {
-          return d.active.occurences
+          return that.options.rounding_function(d.active.occurences)
         })
 
     }
@@ -933,8 +933,8 @@
   , graphs_container_selector: '#words-frequency-graphs'
   , graphs_line_color: '#ef4b48'
   , graphs_line_width: 1.2
-
   , graph_height: 128
+  , rounding_function: function(a) {return a}
   }
 
 }(window.jQuery);
