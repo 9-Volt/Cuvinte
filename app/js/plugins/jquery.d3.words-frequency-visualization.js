@@ -855,6 +855,13 @@
 
       d.$graph_overlay
         .on('mousemove', function(ev){
+          // Normalize offset for browsers which do not provide that value
+          if (ev.offsetX === undefined || ev.offsetY === undefined) {
+            var targetOffset = $(ev.target).offset()
+            ev.offsetX = ev.pageX - targetOffset.left
+            ev.offsetY = ev.pageY - targetOffset.top
+          }
+
           // Check mouse column
           for (var i = points.length - 1; i >= 0; i--) {
             if (ev.offsetX > points[i].x1 && ev.offsetX < points[i].x2) {
