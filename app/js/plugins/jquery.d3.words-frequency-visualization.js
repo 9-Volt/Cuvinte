@@ -838,6 +838,7 @@
 
       var pointerHide = function(){
         d.$graph_pointer.css('display', 'none')
+        d.$graph_overlay[0].pointerColumn = -1
       }
 
       var pointerShow = function(column, data){
