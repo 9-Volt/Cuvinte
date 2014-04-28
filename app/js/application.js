@@ -18,5 +18,6 @@ $(function () {
     , "I. Hadârcă": "images/hadarca.png"
     }
   , rounding_function: function(a) {return Math.round(parseFloat(a)*100)/100}
+  , text_months_size: '12px'
   })
 });

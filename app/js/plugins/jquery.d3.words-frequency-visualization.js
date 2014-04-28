@@ -205,8 +205,9 @@
           type: "all"
         , text: "TOTAL"
         , x: 1
-        , y: that.data.height - (timeline_height + 1) * 3
+        , y: that.data.height - (timeline_height + 1) - this.options.text_dates_height * 2 - 2
         , width: this.data.width - 2
+        , height: this.options.text_dates_height
         }
       )
 
@@ -235,8 +236,9 @@
         , "year": _year
         , "text": _year
         , x: Math.max(1, ~~(month_last * month_width))
-        , y: that.data.height - (timeline_height + 1) * 2
+        , y: that.data.height - (timeline_height + 1) - this.options.text_dates_height - 1
         , width: _year_width
+        , height: this.options.text_dates_height
         })
 
         month_last += month_end - month_start + 1
@@ -714,10 +716,22 @@
             return this.parentNode._data.width / 2
           })
           .attr("dy", function (d, i) {
-            return timeline_height - (timeline_height / 4)
+            if (this.parentNode._data.type === 'all' || this.parentNode._data.type === 'year') {
+              return that.options.text_dates_height - (that.options.text_dates_height / 4)
+            } else if (this.parentNode._data.type === 'month') {
+              return Math.round(timeline_height - (timeline_height / 5.5))
+            }
           })
           .attr("text-anchor", "middle")
-          .attr("font-size", this.options.text_dates_size)
+          .attr("font-size", function(d, i){
+            if (this.parentNode._data.type === 'all') {
+              return that.options.text_total_size
+            } else if (this.parentNode._data.type === 'year') {
+              return that.options.text_years_size
+            } else if (this.parentNode._data.type === 'month') {
+              return that.options.text_months_size
+            }
+          })
           .attr("fill", "white")
         // Events
           .on("click", function (d, i) {
@@ -1021,7 +1035,10 @@
   , texture: 'img/texture.png'
   , text_occurences_size: '24px'
   , text_names_size: '21px'
-  , text_dates_size: '16px'
+  , text_total_size: '16px'
+  , text_years_size: '16px'
+  , text_months_size: '14px'
+  , text_dates_height: 18
   , graphs_container_selector: '#words-frequency-graphs'
   , graphs_line_color: '#ef4b48'
   , graphs_line_width: 1.2
