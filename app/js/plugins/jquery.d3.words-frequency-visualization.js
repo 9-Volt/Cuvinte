@@ -847,7 +847,7 @@
         d.$graph_pointer
           .text(data.occurences)
           .css({
-            bottom: graph_height - that.findYatXbyBisection(data.x, d.path[0][0])
+            bottom: graph_height - that.findYatXbyBisection(data.x, d.path[0][0], 0.01, graph_height)
           , left: data.x - (d.$graph_pointer.width()/2) - 4
           , display: 'block'
           })
@@ -898,7 +898,7 @@
       .y(function(d) {return d.y;})
       .interpolate("basis")
 
-  , findYatXbyBisection: function(x, path, error){
+  , findYatXbyBisection: function(x, path, error, max_height){
       var length_end = path.getTotalLength()
         , length_start = 0
         , point = path.getPointAtLength((length_end + length_start) / 2) // get the middle point
@@ -921,7 +921,8 @@
         if(bisection_iterations_max < ++ bisection_iterations)
           break;
       }
-      return point.y
+      console.log(point.y)
+      return Math.min(Math.abs(point.y), max_height)
     }
 
   , updateGraph: function(d, occurence_min, occurence_max) {
