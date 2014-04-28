@@ -774,8 +774,11 @@
           .domain([occurence_min, occurence_max])
           .range([0, graph_height])
 
-      // Get graph Y points
       var points = []
+      // Cache points into d
+      d.points = points
+
+      // Get graph Y points
       for (var _i in occurences) {
         points.push({
           y: graph_height - scaleY(occurences[_i])
@@ -836,23 +839,6 @@
 
       d.$graph_overlay[0].pointerColumn = 0
 
-      var pointerHide = function(){
-        d.$graph_pointer.css('display', 'none')
-        d.$graph_overlay[0].pointerColumn = -1
-      }
-
-      var pointerShow = function(column, data){
-        d.$graph_overlay[0].pointerColumn = column
-
-        d.$graph_pointer
-          .text(data.occurences)
-          .css({
-            bottom: graph_height - that.findYatXbyBisection(data.x, d.path[0][0], 0.01, graph_height)
-          , left: data.x - (d.$graph_pointer.width()/2) - 4
-          , display: 'block'
-          })
-      }
-
       d.$graph_overlay
         .on('mousemove', function(ev){
           // Normalize offset for browsers which do not provide that value
@@ -867,15 +853,14 @@
             if (ev.offsetX > points[i].x1 && ev.offsetX < points[i].x2) {
               // If active column is different from hovered now
               if (i !== this.pointerColumn) {
-                pointerShow(i, points[i])
+                that.pointersShow(i)
               }
               break;
             }
-            points[i]
           };
         })
         .on('mouseout', function(ev){
-          pointerHide()
+          that.pointersHide()
         })
 
       // Update active graphs
@@ -921,8 +906,33 @@
         if(bisection_iterations_max < ++ bisection_iterations)
           break;
       }
-      console.log(point.y)
       return Math.min(Math.abs(point.y), max_height)
+    }
+
+  , pointersHide: function(){
+      d3.map(this.graphsActive).forEach(function(i, d){
+        d.$graph_pointer.css('display', 'none')
+        d.$graph_overlay[0].pointerColumn = -1
+      })
+    }
+
+  , pointersShow: function(column, data){
+      var that = this
+
+      d3.map(this.graphsActive).forEach(function(i, d){
+        var data = d.points[column]
+          , graph_height = d.$graph.height()
+
+        d.$graph_overlay[0].pointerColumn = column
+
+        d.$graph_pointer
+          .text(data.occurences)
+          .css({
+            bottom: graph_height - that.findYatXbyBisection(data.x, d.path[0][0], 0.01, graph_height)
+          , left: data.x - (d.$graph_pointer.width()/2) - 4
+          , display: 'block'
+          })
+      })
     }
 
   , updateGraph: function(d, occurence_min, occurence_max) {
