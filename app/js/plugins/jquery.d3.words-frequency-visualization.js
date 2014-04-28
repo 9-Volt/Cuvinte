@@ -21,6 +21,8 @@
       this.options = $.extend({}, $.fn.words_mentions.defaults, this.$element.data(), options)
 
       this.$graphs = $(this.options.graphs_container_selector).empty()
+      // Array of active graphs
+      this.graphsActive = []
 
       // svg data
       this.data = {
@@ -735,6 +737,8 @@
   , createGraph: function (d) {
       var that = this
 
+      this.graphsActive.push(d)
+
       d.$graph = $('<div class="graph"/>').appendTo(this.$graphs)
 
       // Add graph columns
@@ -754,9 +758,17 @@
         }
       }
 
-      // Get scale
-      var occurence_min = d3.min(occurences)
-        , occurence_max = d3.max(occurences)
+      // Cache occurences into d
+      d._occurences = occurences
+      // Cache max
+      d.occurencesMax = d3.max(occurences)
+      // Cache min. Use 0, on need change into d3.min
+      d.occurencesMin = 0
+
+      // Get min/max occurences from all active graphs
+      var occurence_min = d3.min(this.graphsActive, function(a){return a.occurencesMin})
+        , occurence_max = d3.max(this.graphsActive, function(a){return a.occurencesMax})
+        // Get scale
         , graph_height = d.$graph.height()
         , scaleY = d3.scale.linear()
           .domain([occurence_min, occurence_max])
@@ -789,12 +801,6 @@
         .attr("width", this.data.width)
         .attr("height", graph_height)
 
-
-      var lineFunction = d3.svg.line()
-        .x(function(d, i) { return d.x; })
-        .y(function(d) { return d.y; })
-        .interpolate("basis")
-
       // Add image
       d.graph
         .append("image")
@@ -815,15 +821,15 @@
           .attr("opacity", 1)
 
       // Add path
-      var path = d.graph
+      d.path = d.graph
         .append("path")
-        .attr("d", lineFunction(points))
+        .attr("d", this.zeroFunction(graph_height)(points))
         .attr("stroke", this.options.graphs_line_color)
         .attr("stroke-width", this.options.graphs_line_width)
         .attr("fill", "none")
 
       // Add pointer
-      d.$graph_pointer = $('<div class="graph-pointer">213</div>').appendTo(d.$graph)
+      d.$graph_pointer = $('<div class="graph-pointer">0</div>').appendTo(d.$graph)
 
       // Use overlay to hook mouse events
       d.$graph_overlay = $('<div class="graph-overlay"/>').appendTo(d.$graph)
@@ -834,39 +840,13 @@
         d.$graph_pointer.css('display', 'none')
       }
 
-      var findYatXbyBisection = function(x, path, error){
-        var length_end = path.getTotalLength()
-          , length_start = 0
-          , point = path.getPointAtLength((length_end + length_start) / 2) // get the middle point
-          , bisection_iterations_max = 50
-          , bisection_iterations = 0
-
-        error = error || 0.01
-
-        while (x < point.x - error || x > point.x + error) {
-          // get the middle point
-          point = path.getPointAtLength((length_end + length_start) / 2)
-
-          if (x < point.x) {
-            length_end = (length_start + length_end)/2
-          } else {
-            length_start = (length_start + length_end)/2
-          }
-
-          // Increase iteration
-          if(bisection_iterations_max < ++ bisection_iterations)
-            break;
-        }
-        return point.y
-      }
-
       var pointerShow = function(column, data){
         d.$graph_overlay[0].pointerColumn = column
 
         d.$graph_pointer
           .text(data.occurences)
           .css({
-            top: findYatXbyBisection(data.x, path[0][0]) - 31 // pointer height
+            bottom: graph_height - that.findYatXbyBisection(data.x, d.path[0][0])
           , left: data.x - (d.$graph_pointer.width()/2) - 4
           , display: 'block'
           })
@@ -890,11 +870,104 @@
           pointerHide()
         })
 
+      // Update active graphs
+      d3.map(this.graphsActive).forEach(function(i, d){
+        that.updateGraph(d, occurence_min, occurence_max)
+      })
+    }
+
+  , zeroFunction: function(height){
+      if (height === undefined) height = 0
+
+      return d3.svg.line()
+        .x(function(d) {return d.x;})
+        .y(function(d) {return height})
+        .interpolate("basis")
+    }
+
+  , lineFunction: d3.svg.line()
+      .x(function(d) {return d.x;})
+      .y(function(d) {return d.y;})
+      .interpolate("basis")
+
+  , findYatXbyBisection: function(x, path, error){
+      var length_end = path.getTotalLength()
+        , length_start = 0
+        , point = path.getPointAtLength((length_end + length_start) / 2) // get the middle point
+        , bisection_iterations_max = 50
+        , bisection_iterations = 0
+
+      error = error || 0.01
+
+      while (x < point.x - error || x > point.x + error) {
+        // get the middle point
+        point = path.getPointAtLength((length_end + length_start) / 2)
+
+        if (x < point.x) {
+          length_end = (length_start + length_end)/2
+        } else {
+          length_start = (length_start + length_end)/2
+        }
+
+        // Increase iteration
+        if(bisection_iterations_max < ++ bisection_iterations)
+          break;
+      }
+      return point.y
+    }
+
+  , updateGraph: function(d, occurence_min, occurence_max) {
+      // Get scale
+      var graph_height = d.$graph.height()
+        , scaleY = d3.scale.linear()
+          .domain([occurence_min, occurence_max])
+          .range([0, graph_height])
+
+      // Get graph Y points
+      var points = []
+      for (var _i in d._occurences) {
+        points.push({
+          y: graph_height - scaleY(d._occurences[_i])
+        , 'occurences': d._occurences[_i]
+        })
+      }
+
+      // Get graph X points
+      var _point_counter = 0
+      for (var _i in this.data.timeline) {
+        if (this.data.timeline[_i].type === 'month') {
+          points[_point_counter].x = this.data.timeline[_i].x + this.data.timeline[_i].width / 2
+          // Starting and ending point
+          points[_point_counter].x1 = this.data.timeline[_i].x
+          points[_point_counter].x2 = this.data.timeline[_i].x + this.data.timeline[_i].width
+          _point_counter += 1
+        }
+      }
+
+      // Update path
+      d.path
+        .transition()
+          .duration(500)
+        .attr("d", this.lineFunction(points))
     }
 
   , destroyGraph: function (d) {
+      var that = this
+
+      if (this.graphsActive.indexOf(d) !== -1)
+        this.graphsActive.splice(this.graphsActive.indexOf(d), 1)
+
       d.graph.remove()
       d.$graph.remove()
+
+      // Get min/max occurences from all active graphs
+      var occurence_min = d3.min(this.graphsActive, function(a){return a.occurencesMin})
+        , occurence_max = d3.max(this.graphsActive, function(a){return a.occurencesMax})
+
+      // Update active graphs
+      d3.map(this.graphsActive).forEach(function(i, d){
+        that.updateGraph(d, occurence_min, occurence_max)
+      })
     }
 
   }

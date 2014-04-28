@@ -76,7 +76,7 @@ html, body{
       }
       .graph-pointer{
         position: absolute;
-        top: 50px;
+        bottom: 0;
         left: 100px;
         display: none;
         background: red;
@@ -84,6 +84,7 @@ html, body{
         line-height: 24px;
         height: 20px;
         padding: 0 4px;
+        margin: 0 0 13px; // add bottom margin to align bottom line with dot
         &:before{
           content: '';
           position: absolute;
