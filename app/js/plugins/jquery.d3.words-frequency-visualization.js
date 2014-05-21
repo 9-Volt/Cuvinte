@@ -477,7 +477,11 @@
             return ((valueFunction(d.active.occurences) - data_min) / scale_data_to_size + size_min) / 2 + 1
           })
           .attr("opacity", 1)
-        // Events
+
+      // Enable circles toggling only after circles' apparition finishes
+      setTimeout(function(){
+        that.data.circles_masks
+          // Events
           .on("mouseover", function (d, i) {
             that.toggleCircle(this, d, i, true, 500)
           })
@@ -489,6 +493,7 @@
             that.toggleCircle(this, d, i, this._data.clicked, this._data.clicked ? 0 : 500)
             that.toggleGraph(d, this._data.clicked)
           })
+      }, 1000)
 
       this.data.circles_titles = this.data.circles_groups
         .append("text")
