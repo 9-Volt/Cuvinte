@@ -900,7 +900,7 @@
   , findYatXbyBisection: function(x, path, error, max_height){
       var length_end = path.getTotalLength()
         , length_start = 0
-        , point = path.getPointAtLength((length_end + length_start) / 2) // get the middle point
+        , point = path.getPointAtLength(Math.round((length_end + length_start) / 2) || 0) // get the middle point
         , bisection_iterations_max = 50
         , bisection_iterations = 0
 
